@@ -4,21 +4,18 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.DirectoryStream;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-public class DirectoryBackupTests {
+public class HardDiskBackupTests {
 
 	Path correctOrigin, destination = null;
 	String originPath, destinationPath = null;
@@ -45,7 +42,7 @@ public class DirectoryBackupTests {
 	
 	@Test
 	public void testUpdate() throws IOException{
-		Backup record = new Backup(correctOrigin, destination);
+		Backup record = new HardDiskBackup(correctOrigin, destination);
 		record.update();
 		assertTrue("A directory should have been created: " + destination.toString() , new File(destination.toString()).exists());
 		
