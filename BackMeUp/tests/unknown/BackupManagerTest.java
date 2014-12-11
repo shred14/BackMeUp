@@ -95,7 +95,7 @@ public class BackupManagerTest {
 	@Test
 	public void testReadBackups() throws IOException {
 		//test for a bad read first
-	  manager.clear();
+	  manager.clear(); 
 	  new File(manager.PATH).delete();
 	  
 		boolean result = manager.readBackups();
