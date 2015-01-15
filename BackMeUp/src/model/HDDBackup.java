@@ -1,5 +1,6 @@
 package model;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.CopyOption;
@@ -9,6 +10,7 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
 
@@ -21,31 +23,39 @@ import static java.nio.file.FileVisitResult.*;
 import static java.nio.file.StandardCopyOption.*;
 
 
-public class HardDiskBackup implements Backup {
+public class HDDBackup implements Backup {
 	
 	private Path _origin, _location;
 	
-	public HardDiskBackup(Path original, Path destination) throws IOException{
-		_origin = original;
-		_location = destination;
-		Files.createDirectory(destination);
-	}
-	
-	public HardDiskBackup(String o, String d) throws IOException {
-		_origin = Paths.get(o);
-		_location = Paths.get(d);
-		Files.createDirectory(_location);
+	public HDDBackup(String original, String destination) {
+		_origin = Paths.get(original);
+		_location = Paths.get(destination);
 	}
 
 	/* (non-Javadoc)
 	 * @see model.Backup#update()
 	 */
 	@Override
-	public void update() throws IOException {
-		Files.walkFileTree(_origin, new DirCopier());
+	public boolean update() {
+	  
+	  // if backup is old, should update. if backup does not exist it should update
+	  boolean result = false;
+	  
+	  if (this.outModed()) {
+	    result = true;
+	  
+	    try {
+	      Files.walkFileTree(_origin, new DirCopier());
+	    } catch (IOException e) {
+	      // TODO Auto-generated catch block
+	      e.printStackTrace();
+	    }
+	  }
+		
+		return result;
 	}
 	
-	void copyFile(Path source, Path target) {
+	protected void copyFile(Path source, Path target) {
 		CopyOption[] options =  new CopyOption[] { COPY_ATTRIBUTES, REPLACE_EXISTING };
 	        
 	    try {
@@ -55,7 +65,7 @@ public class HardDiskBackup implements Backup {
 	    }
 	 }
 	
-	class DirCopier implements FileVisitor<Path> {
+	protected class DirCopier implements FileVisitor<Path> {
 
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
@@ -107,35 +117,60 @@ public class HardDiskBackup implements Backup {
 	}
 
 
-	@Override
-	public String toJSON() throws IOException {
+	@SuppressWarnings("unchecked")
+  @Override
+	public String toJSON() {
 		JSONObject obj = new JSONObject();
 
-	      obj.put("_origin", _origin);
-	      obj.put("_location", _location);
+	  obj.put("_origin", _origin.toString());
+	  obj.put("_location",_location.toString() );
 
-	      StringWriter out = new StringWriter();
-	      obj.writeJSONString(out);
+	  StringWriter out = new StringWriter();
+	      try {
+          obj.writeJSONString(out);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
 	      return out.toString();
 	}
 
   @Override
   public boolean equals(Backup b) {
-    if (_origin.equals(b.origin()))
-      if (_location.equals(b.location()))
+    if (original().equals(b.original()))
+      if (location().equals(b.location()))
           return true;
     
     return false;
   }
 
   @Override
-  public Path origin() {
+  public Path location() {
+    return _location;
+  }
+
+  @Override
+  public Path original() {
     return _origin;
   }
 
   @Override
-  public Path location() {
-    // TODO Auto-generated method stub
-    return _location;
+  public boolean outModed() {
+    boolean result = false;
+    if (!Files.exists(_location)) {
+      result = true;
+    } else {
+      try {
+        FileTime bk = Files.getLastModifiedTime(_location);
+        FileTime o = Files.getLastModifiedTime(_origin);
+      
+        if (bk.compareTo(o) < 0) { //old
+          result = true;
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }    
+    }
+    return result;
   }
+
 }
