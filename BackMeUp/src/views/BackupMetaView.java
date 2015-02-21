@@ -1,59 +1,112 @@
 package views;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.event.ActionListener;
+import java.awt.*;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneLayout;
+import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
-import model.Backup;
-
-public class BackupMetaView extends JPanel implements View {
+public class BackupMetaView extends JPanel implements View
+{
+  private static final long serialVersionUID = 1L;
+  private DefaultListModel<Object> _listModel;
+	private JTable _table;
 	
-	private DefaultListModel listModel;
-//	private JList contentList;
-//	private JScrollPane itemsScroller;
+	public BackupMetaView( Object[] content )
+	{
+		this.setContent( content );
+		this.setLayout( new BorderLayout() );	
+		_table = new JTable( new MyTableModel() );
+		setCellRenderers();
+		constructLayout();
+		setBackground( Color.RED );		
+	}
 	
-	public BackupMetaView(String[] content){
-		this.setContent(content);
-		this.setLayout(new BorderLayout());
-		
-		JList contentList = new JList(listModel);
-		contentList.setLayoutOrientation(JList.VERTICAL);
-		//contentList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-		contentList.setVisibleRowCount(-1);
-		
-		JScrollPane itemsScroller = new JScrollPane(contentList);
-		//temsScroller.setPreferredSize(new Dimension(250, 80));
-		ScrollPaneLayout layout = new ScrollPaneLayout();
-		layout.layoutContainer(itemsScroller);
-		itemsScroller.setLayout(layout);
-		this.add(itemsScroller, BorderLayout.CENTER);
-		setBackground(Color.RED);
+	private void setCellRenderers () 
+	{
+	  _table.getColumnModel().getColumn( 2 ).setCellRenderer( new ImageRenderer() );
+	}
+	
+	private void constructLayout ()
+	{
+	  JScrollPane itemsScroller = new JScrollPane( _table );
+    ScrollPaneLayout layout = new ScrollPaneLayout();
+    layout.layoutContainer( itemsScroller );
+    itemsScroller.setLayout( layout );
+    this.add( itemsScroller, BorderLayout.CENTER );
 	}
 
 
-	public void setContent(Object[] newContent) {
-		if (listModel == null)
-			listModel = new DefaultListModel();
+	public void setContent ( Object[] newContent ) 
+	{
+		if (_listModel == null)
+		{
+			_listModel = new DefaultListModel<Object>();
+		}
 		else
-			listModel.clear();
+		{
+			_listModel.clear();
+		}
 		
-		for(Object s : newContent)
-			listModel.addElement(s);
+		for( Object s : newContent )
+			_listModel.addElement( s );
 	}
-
-
-  @Override
-  public void display() {
-    // TODO Auto-generated method stub
+	
+	public int[] getSelectedBackupsIndices()
+  {
+    return _table.getSelectedRows();
   }
- 
+		
+	class MyTableModel extends AbstractTableModel
+	{  
+    private static final long serialVersionUID = 1L;
+
+    String[] columnNames = { "Original File",
+                             "Backup File",
+                             "Outmoded" };
+	  
+	  Object[][] rowData = {
+          { "Kathy", "Smith", new Boolean( false ) },
+          { "John", "Doe", new Boolean( true ) },
+          { "Sue", "Black", new Boolean( false ) },
+          { "Jane", "White", new Boolean( true ) },
+          { "Joe", "Brown", new Boolean( false )
+        }
+    };
+	  
+    public String getColumnName( int col )
+    {  
+      return columnNames[col].toString();
+    }
+    
+    public int getRowCount () { return rowData.length; }
+    
+    public int getColumnCount () { return columnNames.length; }
+    
+    public Object getValueAt ( int row, int col ) { return rowData[row][col]; }
+    
+    public boolean isCellEditable ( int row, int col ) { return false; }
+    
+    public void setValueAt( Object value, int row, int col )
+    {
+        rowData[row][col] = value;
+        fireTableCellUpdated( row, col );
+    }
+	}
+	
+	class ImageRenderer extends DefaultTableCellRenderer
+  {
+    private static final long serialVersionUID = 1L;
+    JLabel lbl = new JLabel();
+    ImageIcon icon = new ImageIcon( getClass().getResource( "test.png" ) );
+
+    public Component getTableCellRendererComponent( JTable table, Object value, boolean isSelected,
+                                                    boolean hasFocus, int row, int column )
+    {
+      lbl.setText( "hello" );
+      lbl.setIcon( icon );
+      return lbl;
+    }
+  }
+
 }

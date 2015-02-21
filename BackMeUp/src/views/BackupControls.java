@@ -2,43 +2,52 @@ package views;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 
-public class BackupControls extends JPanel implements ControlPanel {
+public class BackupControls extends JPanel implements ControlPanel
+{  
+  private static final long serialVersionUID = -1902444532690820725L;
+  private ArrayList<AbstractButton> _buttonComponents = new ArrayList<AbstractButton>();
   
-  private JButton addButton, removeButton;
-  
-  public BackupControls() {
+  public BackupControls ()
+  {    
+    this.setLayout( new BoxLayout( this, BoxLayout.PAGE_AXIS ) );
+    populateControls();
     
-    addButton = new JButton("Add Backup");
-    addButton.setActionCommand("add");
-    removeButton = new JButton("Remove Backup");
-    removeButton.setActionCommand("remove");
-    this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-    
-    
-    
-    
-    this.add(addButton);
-    this.add(Box.createRigidArea(new Dimension(0,15)));
-    this.add(removeButton);
-    this.add(Box.createVerticalGlue());
-    
+    //for layout debugging purposes
     setBackground(Color.GREEN);
   }
 
   @Override
-  public void addSubscriber(ActionListener handler) {
-    // TODO Auto-generated method stub
+  public void addSubscriber (ActionListener handler)
+  {
+    for( AbstractButton b : _buttonComponents )
+    {
+      b.addActionListener( handler );
+    }
   }
+  
+  private void populateControls ()
+  {
+    constructButton( "Add Backup", "add" );
+    constructButton( "Remove Backup", "remove" );
+    constructButton( "Update Backups", "update" );
+    
+    for( AbstractButton b : _buttonComponents )
+    {
+      this.add( b );
+      this.add( Box.createRigidArea( new Dimension(0,15) ) );
+    }
+  }
+  
+  private void constructButton (String displayText, String eventText)
+  {
+    JButton b = new JButton( displayText );
+    b.setActionCommand( eventText );
+    _buttonComponents.add( b );
+  }
+  
 }
